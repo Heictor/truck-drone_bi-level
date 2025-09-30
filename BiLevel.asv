@@ -36,11 +36,11 @@ xOffset_truck = worldSizeX / 2;
 yOffset_truck = worldSizeY / 2;
 
 % Tunable Target Parameters
-numTargets = 5; % TUNABLE: Number of customers
+numTargets = 10; % TUNABLE: Number of customers
 
 % Truck Parameters (Lower-Level)
-numTrucks = 5;
-numNodes = 10; 
+numTrucks = numTargets;
+numNodes = 20; 
 numParkingSpots = numTrucks; 
 truckSpeed = 36.0; % km/h (approx. 22 mph)
 truckDiagFlightEnabled = false; 
@@ -67,12 +67,12 @@ cost.signalPenalty = 500.00;    % High penalty for risk of losing signal
 
 % Genetic Algorithm Parameters
 ga.populationSize = 50;
-ga.maxGenerations = 2;
+ga.maxGenerations = 10;
 ga.mutationRate = 0.1;
 
 % Bat Optimization Algorithm Parameters
 boa.populationSize = 20;
-boa.maxGenerations = 2;
+boa.maxGenerations = 10;
 boa.fmin = 0; boa.fmax = 2;
 boa.loudness = 0.5;
 boa.pulseRate = 0.5;
@@ -97,7 +97,7 @@ target_indices_local = floor(targetPositions_local / gridResolution) + 1;
 % --- MAP 1: Drone Operating Area with Varied Obstacles and Target Safety Check ---
 gridMap_drone = false(gridSizeY_drone, gridSizeX_drone);
 obstacles = struct('x', {}, 'y', {}, 'w', {}, 'h', {}, 'z', {});
-numObstacles = 15;
+numObstacles = 50;
 safetyRadius_cells = ceil(droneSafetyRadius / gridResolution);
 for i = 1:numObstacles
     isPlacementValid = false;

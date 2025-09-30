@@ -1,0 +1,11 @@
+Error encountered in ACO_CMAES for seed 3001.
+RNG State at start of run was:
+Type: threefry
+Seed: 2001
+State: [0;0;0;0;0;0;0;0;2002;18847;2004;2003;2006;2005;2008;2007;1]
+
+Error using rectangle
+Unrecognized property DisplayName for class Rectangle.
+
+Error in runSingleSimulation (line 127)
+rectangle(ax1, 'Position',[noGo_x_start, noGo_y_start, floorSizeX, floorSizeY], 'FaceColor',[.5 .5 .5], 'EdgeColor','k', 'DisplayName','No-Go Zone');

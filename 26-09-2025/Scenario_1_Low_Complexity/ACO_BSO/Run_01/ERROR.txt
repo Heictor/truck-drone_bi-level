@@ -1,0 +1,8 @@
+Error using runSingleSimulation>runDroneBSO (line 563)
+K must be less than or equal to N.
+
+Error in runSingleSimulation>calculate_truck_fleet_cost (line 421)
+            case 'BSO', [~, ~, ~, missionTime, ~] = runDroneBSO(startNode_local, truckTarget, drone_map, cost, alt, droneSpeed_H, droneSpeed_V, dDiag, dStay, dBatt, iBatt, bso, tower, r1, r2, k1, k2, fX, fY);
+
+Error in runSingleSimulation (line 220)
+            parfor a = 1:aco.numAnts

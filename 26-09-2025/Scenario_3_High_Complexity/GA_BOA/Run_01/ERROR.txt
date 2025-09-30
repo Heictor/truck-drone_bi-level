@@ -1,0 +1,4 @@
+Index in position 1 exceeds array bounds.
+
+Error in runSingleSimulation (line 285)
+    startPos_world = parkingSpots(t, :);
