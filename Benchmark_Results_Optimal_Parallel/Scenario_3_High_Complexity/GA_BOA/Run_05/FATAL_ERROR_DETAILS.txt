@@ -1,0 +1,11 @@
+Error encountered in GA_BOA for seed 3105.
+RNG State at start of run was:
+Type: threefry
+Seed: 1401
+State: [0;0;0;0;0;0;0;0;1402;219319;1404;1403;1406;1405;1408;1407;0]
+
+Error using rectangle
+Unrecognized property DisplayName for class Rectangle.
+
+Error in runSingleSimulation (line 127)
+rectangle(ax1, 'Position',[noGo_x_start, noGo_y_start, floorSizeX, floorSizeY], 'FaceColor',[.5 .5 .5], 'EdgeColor','k', 'DisplayName','No-Go Zone');

@@ -1,0 +1,11 @@
+Error encountered in ALNS_PSO for seed 3405.
+RNG State at start of run was:
+Type: threefry
+Seed: 3302
+State: [0;0;0;0;0;0;0;0;3303;1996451;3305;3304;3307;3306;3309;3308;0]
+
+Error using rectangle
+Unrecognized property DisplayName for class Rectangle.
+
+Error in runSingleSimulation (line 127)
+rectangle(ax1, 'Position',[noGo_x_start, noGo_y_start, floorSizeX, floorSizeY], 'FaceColor',[.5 .5 .5], 'EdgeColor','k', 'DisplayName','No-Go Zone');

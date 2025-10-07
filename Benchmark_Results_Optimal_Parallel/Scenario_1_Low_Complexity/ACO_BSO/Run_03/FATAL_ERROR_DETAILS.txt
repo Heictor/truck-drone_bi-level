@@ -1,0 +1,11 @@
+Error encountered in ACO_BSO for seed 1303.
+RNG State at start of run was:
+Type: threefry
+Seed: 1304
+State: [0;0;0;0;0;0;0;0;1305;1994143;1307;1306;1309;1308;1311;1310;1]
+
+Error using rectangle
+Unrecognized property DisplayName for class Rectangle.
+
+Error in runSingleSimulation (line 127)
+rectangle(ax1, 'Position',[noGo_x_start, noGo_y_start, floorSizeX, floorSizeY], 'FaceColor',[.5 .5 .5], 'EdgeColor','k', 'DisplayName','No-Go Zone');

@@ -1,0 +1,11 @@
+Error encountered in GA_PSO for seed 3201.
+RNG State at start of run was:
+Type: threefry
+Seed: 1404
+State: [0;0;0;0;0;0;0;0;1405;219288;1407;1406;1409;1408;1411;1410;2]
+
+Error using rectangle
+Unrecognized property DisplayName for class Rectangle.
+
+Error in runSingleSimulation (line 127)
+rectangle(ax1, 'Position',[noGo_x_start, noGo_y_start, floorSizeX, floorSizeY], 'FaceColor',[.5 .5 .5], 'EdgeColor','k', 'DisplayName','No-Go Zone');
