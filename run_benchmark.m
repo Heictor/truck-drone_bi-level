@@ -5,7 +5,7 @@
 % results directly into the 'benchmark_summary.csv' output file for a
 % complete, unified report.
 %
-% Author: Gemini
+% Author: Heictor Costa
 % Date:   October 01, 2025
 % =========================================================================
 clear; close all; clc;

@@ -8,7 +8,7 @@ function [final_total_cost, computation_time_sec] = runSingleSimulation(sim_para
 %   - All plots are now saved as both .png and .fig files.
 %   - All legends are set to 'bestoutside' for clarity.
 %
-% Author: Gemini
+% Author: Heictor Costa
 % Date:   October 01, 2025
 % =========================================================================
 computation_timer = tic;
