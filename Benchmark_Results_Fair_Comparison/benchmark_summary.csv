@@ -1,0 +1,16 @@
+Scenario,Algorithm,Mean_Cost_USD,Std_Dev_Cost,Min_Cost_USD,Max_Cost_USD,Mean_Time_sec
+Scenario_1_Low_Complexity,GA_BOA,NaN,NaN,NaN,NaN,NaN
+Scenario_1_Low_Complexity,GA_PSO,NaN,NaN,NaN,NaN,NaN
+Scenario_1_Low_Complexity,ACO_BSO,NaN,NaN,NaN,NaN,NaN
+Scenario_1_Low_Complexity,ALNS_PSO,NaN,NaN,NaN,NaN,NaN
+Scenario_1_Low_Complexity,ACO_CMAES,NaN,NaN,NaN,NaN,NaN
+Scenario_2_Medium_Complexity,GA_BOA,NaN,NaN,NaN,NaN,NaN
+Scenario_2_Medium_Complexity,GA_PSO,NaN,NaN,NaN,NaN,NaN
+Scenario_2_Medium_Complexity,ACO_BSO,Inf,NaN,Inf,Inf,283.7620262
+Scenario_2_Medium_Complexity,ALNS_PSO,NaN,NaN,NaN,NaN,NaN
+Scenario_2_Medium_Complexity,ACO_CMAES,Inf,NaN,Inf,Inf,254.0026473
+Scenario_3_High_Complexity,GA_BOA,NaN,NaN,NaN,NaN,NaN
+Scenario_3_High_Complexity,GA_PSO,NaN,NaN,NaN,NaN,NaN
+Scenario_3_High_Complexity,ACO_BSO,NaN,NaN,NaN,NaN,NaN
+Scenario_3_High_Complexity,ALNS_PSO,NaN,NaN,NaN,NaN,NaN
+Scenario_3_High_Complexity,ACO_CMAES,NaN,NaN,NaN,NaN,NaN
