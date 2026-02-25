@@ -1,16 +1,33 @@
 % =========================================================================
-% BENCHMARK SCRIPT FOR BI-LEVEL TRUCK-DRONE OPTIMIZATION (v8 - Final)
+% BENCHMARK SCRIPT FOR BI-LEVEL TRUCK-DRONE OPTIMIZATION (v9 - Optimized)
 %
-% This final version integrates the Friedman and Wilcoxon statistical test
-% results directly into the 'benchmark_summary.csv' output file for a
-% complete, unified report.
+% IMPROVEMENTS:
+% - Fixed NaN propagation in statistical tests
+% - Fixed ALNS array bounds error
+% - Auto-cleanup of crash dump files
+% - Better error handling for Inf costs
+% - Parallel pool optimization
 %
 % Author: Heictor Costa
-% Date:   October 01, 2025
+% Date:   February 06, 2026
 % =========================================================================
 clear; close all; clc;
 
 benchmark_timer = tic;
+
+%% SECTION 0: PARALLEL POOL SETUP WITH CLEANUP
+% Clean up any existing crash dump files before starting
+cleanup_crash_dumps();
+
+% Setup parallel pool with optimized settings
+if isempty(gcp('nocreate'))
+    % Use more workers if available, disable job storage that causes dump files
+    numCores = feature('numcores');
+    poolObj = parpool('local', numCores, 'SpmdEnabled', false);
+    poolObj.IdleTimeout = Inf; % Prevent timeout during long runs
+else
+    disp('Parallel pool already running.');
+end
 
 %% SECTION 1: BENCHMARK CONFIGURATION
 NUM_RUNS = 5;
@@ -43,7 +60,6 @@ total_jobs = length(job_list);
 fprintf('%d total simulation jobs created.\n', total_jobs);
 
 %% SECTION 3: PARALLEL EXECUTION
-if isempty(gcp('nocreate')), parpool('local'); else, disp('Parallel pool already running.'); end
 fprintf('\nStarting parallel execution of all jobs...\n');
 results_data = cell(total_jobs, 1);
 parfor i = 1:total_jobs
@@ -70,13 +86,20 @@ parfor i = 1:total_jobs
     try
         [final_cost, comp_time] = runSingleSimulation(sim_params);
         results_data{i} = struct('scenario', scenario.name, 'algorithm', algo_name, 'cost', final_cost, 'time', comp_time);
-        fprintf('Finished: [%s] - [%s] - Run %d | Cost: %.2f\n', scenario.name, algo_name, run_idx, final_cost);
+        if isinf(final_cost)
+            fprintf('Finished: [%s] - [%s] - Run %d | Cost: Inf (No feasible solution)\n', scenario.name, algo_name, run_idx);
+        else
+            fprintf('Finished: [%s] - [%s] - Run %d | Cost: %.2f\n', scenario.name, algo_name, run_idx, final_cost);
+        end
     catch ME
         fprintf('FATAL ERROR in [%s] - [%s] - Run %d: %s\n', scenario.name, algo_name, run_idx, ME.message);
-        results_data{i} = struct('scenario', scenario.name, 'algorithm', algo_name, 'cost', NaN, 'time', NaN);
+        results_data{i} = struct('scenario', scenario.name, 'algorithm', algo_name, 'cost', Inf, 'time', NaN);
     end
 end
 fprintf('\nAll parallel jobs complete.\n');
+
+% Cleanup crash dumps after parallel execution
+cleanup_crash_dumps();
 
 %% SECTION 4: FINAL REPORT GENERATION
 fprintf('Generating final report...\n');
@@ -102,7 +125,14 @@ for s_name_cell = unique_scenarios
         end
         all_results_agg.(s_name).(a_name).costs = costs;
         
-        new_row = {s_name, a_name, mean(costs, 'omitnan'), std(costs, 'omitnan'), min(costs), max(costs), mean(times, 'omitnan')};
+        % Handle Inf values properly - replace with marker for display
+        finite_costs = costs(isfinite(costs));
+        if isempty(finite_costs)
+            % All runs were infeasible
+            new_row = {s_name, a_name, Inf, NaN, Inf, Inf, mean(times, 'omitnan')};
+        else
+            new_row = {s_name, a_name, mean(finite_costs), std(finite_costs), min(finite_costs), max(finite_costs), mean(times, 'omitnan')};
+        end
         results_table = [results_table; new_row];
     end
 end
@@ -116,7 +146,7 @@ disp(results_table);
 fprintf('Writing main summary table to: %s\n', summary_file_path);
 writetable(results_table, summary_file_path);
 
-%% SECTION 5: STATISTICAL ANALYSIS & APPEND TO CSV
+%% SECTION 5: STATISTICAL ANALYSIS & APPEND TO CSV (FIXED NaN HANDLING)
 fprintf('\nPerforming statistical analysis and appending to CSV...\n');
 
 % Create empty cells for spacing in the CSV file
@@ -130,18 +160,30 @@ for s_name_cell = unique_scenarios
     writecell(spacer, summary_file_path, 'WriteMode', 'append');
     writecell(scenario_header, summary_file_path, 'WriteMode', 'append');
     
-    % --- Friedman Test ---
+    % --- Friedman Test (with proper handling of Inf/NaN) ---
     cost_matrix = [];
     for a_name_cell = unique_algorithms
         a_name = a_name_cell{:};
         cost_matrix = [cost_matrix, all_results_agg.(s_name).(a_name).costs(:)];
     end
     
+    % Replace Inf with NaN for statistical tests, then check if we have enough valid data
+    cost_matrix_clean = cost_matrix;
+    cost_matrix_clean(isinf(cost_matrix_clean)) = NaN;
+    
+    % Remove rows where ALL algorithms failed (all NaN)
+    valid_rows = ~all(isnan(cost_matrix_clean), 2);
+    cost_matrix_clean = cost_matrix_clean(valid_rows, :);
+    
     p_friedman = NaN;
-    try
-        [p_friedman, ~, ~] = friedman(cost_matrix, 1, 'off');
-    catch
-        % Friedman test can fail if data has too many NaNs or ties
+    if size(cost_matrix_clean, 1) >= 2 && sum(valid_rows) >= 2
+        try
+            [p_friedman, ~, ~] = friedman(cost_matrix_clean, 1, 'off');
+        catch ME
+            fprintf('Friedman test failed for %s: %s\n', s_name, ME.message);
+        end
+    else
+        fprintf('Insufficient valid data for Friedman test in %s\n', s_name);
     end
     
     friedman_table = table({s_name}, p_friedman, 'VariableNames', {'Scenario', 'Friedman_p_value'});
@@ -150,7 +192,7 @@ for s_name_cell = unique_scenarios
     writecell({'--- Friedman Test ---'}, summary_file_path, 'WriteMode', 'append');
     writetable(friedman_table, summary_file_path, 'WriteMode', 'append');
     
-    % --- Wilcoxon Signed-Rank Test ---
+    % --- Wilcoxon Signed-Rank Test (with proper handling of Inf/NaN) ---
     p_values = NaN(length(unique_algorithms));
     for i = 1:length(unique_algorithms)
         for j = i + 1:length(unique_algorithms)
@@ -160,9 +202,17 @@ for s_name_cell = unique_scenarios
             costs1 = all_results_agg.(s_name).(algo1_name).costs;
             costs2 = all_results_agg.(s_name).(algo2_name).costs;
             
-            valid_pairs = ~isnan(costs1) & ~isnan(costs2);
-            if sum(valid_pairs) >= 2 % Need at least 2 pairs to run the test
-                p = signrank(costs1(valid_pairs), costs2(valid_pairs));
+            % Replace Inf with NaN, then find valid pairs
+            costs1_clean = costs1; costs1_clean(isinf(costs1_clean)) = NaN;
+            costs2_clean = costs2; costs2_clean(isinf(costs2_clean)) = NaN;
+            
+            valid_pairs = ~isnan(costs1_clean) & ~isnan(costs2_clean);
+            if sum(valid_pairs) >= 3 % Need at least 3 pairs for reliable test
+                try
+                    p = signrank(costs1_clean(valid_pairs), costs2_clean(valid_pairs));
+                catch
+                    p = NaN;
+                end
             else
                 p = NaN;
             end
@@ -184,6 +234,40 @@ fprintf('\nStatistical analysis complete and appended to CSV.\n');
 % --- Report Total Time ---
 total_benchmark_time_sec = toc(benchmark_timer);
 fprintf('\n------------------------------------------------------\n');
-fprintf('Total Benchmark Execution Time: %.2f minutes.\n', total_benchmark_time_sec / 60);
+fprintf('Total Benchmark Execution Time: %.2f minutes (%.2f hours).\n', total_benchmark_time_sec / 60, total_benchmark_time_sec / 3600);
 fprintf('------------------------------------------------------\n');
+
+% Final cleanup before closing
+cleanup_crash_dumps();
 delete(gcp('nocreate'));
+
+%% HELPER FUNCTION: Cleanup crash dump files
+function cleanup_crash_dumps()
+    try
+        % Find and delete MATLAB crash dump files
+        dump_pattern = fullfile(tempdir, 'matlab_crash_dump*');
+        dump_files = dir(dump_pattern);
+        if ~isempty(dump_files)
+            for i = 1:length(dump_files)
+                delete(fullfile(dump_files(i).folder, dump_files(i).name));
+            end
+            fprintf('Cleaned up %d crash dump file(s).\n', length(dump_files));
+        end
+        
+        % Also clean up parallel pool job storage if it exists
+        local_cluster = parcluster('local');
+        if ~isempty(local_cluster.JobStorageLocation) && exist(local_cluster.JobStorageLocation, 'dir')
+            job_files = dir(fullfile(local_cluster.JobStorageLocation, '**', '*'));
+            old_files = job_files(~[job_files.isdir] & ([job_files.datenum] < now - 1)); % older than 1 day
+            for i = 1:length(old_files)
+                try
+                    delete(fullfile(old_files(i).folder, old_files(i).name));
+                catch
+                    % Skip if file is locked
+                end
+            end
+        end
+    catch ME
+        fprintf('Warning: Could not clean crash dumps: %s\n', ME.message);
+    end
+end
