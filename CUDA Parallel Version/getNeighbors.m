@@ -1,0 +1,1 @@
+function neighbors = getNeighbors(node, diagEnabled, ~, ~), [x, y] = deal(node(1), node(2)); if diagEnabled, [dx, dy] = meshgrid(-1:1, -1:1); neighbors_rel = [dx(:), dy(:)]; neighbors_rel(5,:) = []; else, neighbors_rel = [-1, 0; 1, 0; 0, -1; 0, 1]; end; neighbors = [x,y] + neighbors_rel; end

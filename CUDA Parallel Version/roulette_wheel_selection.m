@@ -1,0 +1,1 @@
+function idx=roulette_wheel_selection(weights),if sum(weights)==0||any(isnan(weights)),weights=ones(size(weights));end;p=weights(:)'/sum(weights);idx=find(rand<=cumsum(p),1,'first');end

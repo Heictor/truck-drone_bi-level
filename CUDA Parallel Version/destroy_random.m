@@ -1,0 +1,1 @@
+function [partial_solution, removed_nodes]=destroy_random(solution,q,varargin),q_safe=min(q,length(solution));removed_indices=randperm(length(solution),q_safe);removed_nodes=solution(removed_indices);partial_solution=solution;partial_solution(removed_indices)=[];end

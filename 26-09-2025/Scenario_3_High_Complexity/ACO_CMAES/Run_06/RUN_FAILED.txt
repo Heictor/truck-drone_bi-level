@@ -1,1 +1,0 @@
-The simulation failed to find a valid solution.
